@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb");
+import mongo from "mongodb";
 
 let connection_string =
   "mongodb+srv://ivancabi:<xcxOsXEosX92d1h3>@projektwa.aztnwwk.mongodb.net/test";
