@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
-import bodyParser from "body-Parser";
 import connect from "./db.js";
 import cors from "cors";
 import jwt from "jsonwebtoken";
@@ -10,35 +9,19 @@ import storage from "./memory_storage.js";
 var app = express();
 const port = 3000;
 
-// app.use(bodyParser.json());
 app.use(cors());
+app.use(express.json());
 
-var tempStorage = [];
+app.get("/posts", async (req, res) => {
+  let db = await connect();
 
-// app.get("/vratisvekorisnike", async (req, res) => {
-//   // let db = await connect();
+  let cursor = await db
+    .collection("ProjectGroups")
+    .find()
+    .sort({ postedAt: -1 });
+  let results = await cursor.toArray();
 
-//   // let cursor = await db.collection("ProjectGroups").find().sort();
-//   // let results = await cursor.toArray();
-
-//   // res.send("Hello World!");
-//   // res.json(results);
-//   console.log(tempStorage);
-//   res.send(tempStorage);
-// });
-
-// app.post("/dodajKorisnika", (req, res) => {
-//   var data = req.body;
-//   console.log(data);
-//   var dataid = "1234";
-
-//   console.log(data);
-//   tempStorage.push(data);
-//   res.send(tempStorage);
-// });
-
-app.get("/posts", (req, res) => {
-  res.json(storage.posts);
+  res.json(results);
 });
 
 app.listen(port, () => {
