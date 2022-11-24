@@ -1,6 +1,7 @@
 import mongo from "mongodb";
 import connect from "./db.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 let authentication = async () => {
   let db = await connect();
   await db.collection("users").createIndex({ username: 1 }, { unique: true });
@@ -20,10 +21,32 @@ export default {
       if (result && result.insertedId) {
         return result.insertedId;
       }
-    } catch (err) {
-      if (err.name == "MongoError" && err.code == 11000) {
+    } catch (e) {
+      if (e.name == "MongoError" && e.code == 11000) {
         throw new Error("Korisnik već postoji!");
       }
+    }
+  },
+  async authenticateUser(email, password) {
+    let db = await connect();
+    let user = await db.collection("users").findOne({ email: email });
+
+    if (
+      user &&
+      user.password &&
+      (await bcrypt.compare(password, user.password))
+    ) {
+      delete user.password;
+      let token = jwt.sign(user, "tajna", {
+        algorithm: "HS512",
+        expiresIn: "1 week",
+      });
+      return {
+        token,
+        email: user.email,
+      };
+    } else {
+      throw new Error("cannot authenticate");
     }
   },
 };

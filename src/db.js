@@ -14,9 +14,9 @@ export default () => {
     if (db) {
       resolve(db);
     }
-    client.connect((err) => {
-      if (err) {
-        reject("došlo je do greške " + err);
+    client.connect((e) => {
+      if (e) {
+        reject("došlo je do greške " + e);
       } else {
         console.log("uspješno spajanje");
         db = client.db("ProjectManager");
