@@ -13,9 +13,8 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/tajna", (res, req) => {
-  console.log(req.headers);
-  // res.json({ message: "Ovo je tajna" });
+app.get("/tajna", [auth.verify], (req, res) => {
+  res.json({ message: "Ovo je tajna " + req.jwt.email });
 });
 app.post("/auth", async (req, res) => {
   let user = req.body;
@@ -24,7 +23,7 @@ app.post("/auth", async (req, res) => {
     let result = await auth.authenticateUser(user.email, user.password);
     res.json(result);
   } catch (e) {
-    res.status(403).json({ error: e.message });
+    res.json({ error: e.message });
   }
 });
 
