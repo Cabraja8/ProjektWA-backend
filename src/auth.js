@@ -34,6 +34,7 @@ export default {
       console.log("korisnik već postoji");
     }
   },
+
   async authenticateUser(email, password) {
     let db = await connect();
     let user = await db.collection("users").findOne({ email: email });
