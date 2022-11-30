@@ -4,27 +4,34 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 let authentication = async () => {
   let db = await connect();
-  await db.collection("users").createIndex({ username: 1 }, { unique: true });
+  await db.collection("users").createIndex({ email: 50 }, { unique: true });
 };
 authentication();
 export default {
   async registerUser(userData) {
     let db = await connect();
-
+    console.log("tu smo", userData);
     let doc = {
       email: userData.email,
       password: await bcrypt.hash(userData.password, 8),
     };
+    let existingUser = db
+      .collection("users")
+      .findOne({ email: userData.email });
 
     try {
       let result = await db.collection("users").insertOne(doc);
       if (result && result.insertedId) {
-        return result.insertedId;
+        return result;
       }
     } catch (e) {
       if (e.name == "MongoError" && e.code == 11000) {
+        //doesn't work idk why
         throw new Error("Korisnik već postoji!");
       }
+    }
+    if (existingUser) {
+      console.log("korisnik već postoji");
     }
   },
   async authenticateUser(email, password) {
