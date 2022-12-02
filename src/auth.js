@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 let authentication = async () => {
   let db = await connect();
-  await db.collection("users").createIndex({ email: 50 }, { unique: true });
+  await db.collection("users").createIndex({ username: 50 }, { unique: true });
 };
 authentication();
 export default {
@@ -12,12 +12,12 @@ export default {
     let db = await connect();
     console.log("tu smo", userData);
     let doc = {
-      email: userData.email,
+      username: userData.username,
       password: await bcrypt.hash(userData.password, 8),
     };
     let existingUser = db
       .collection("users")
-      .findOne({ email: userData.email });
+      .findOne({ username: userData.username });
 
     try {
       let result = await db.collection("users").insertOne(doc);
@@ -35,9 +35,9 @@ export default {
     }
   },
 
-  async authenticateUser(email, password) {
+  async authenticateUser(username, password) {
     let db = await connect();
-    let user = await db.collection("users").findOne({ email: email });
+    let user = await db.collection("users").findOne({ username: username });
 
     if (
       user &&
@@ -51,7 +51,7 @@ export default {
       });
       return {
         token,
-        email: user.email,
+        username: user.username,
       };
     } else {
       throw new Error("cannot authenticate");

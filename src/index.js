@@ -14,13 +14,13 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/tajna", [auth.verify], (req, res) => {
-  res.json({ message: "Ovo je tajna " + req.jwt.email });
+  res.json({ message: "Ovo je tajna " + req.jwt.username });
 });
 app.post("/auth", async (req, res) => {
   let user = req.body;
 
   try {
-    let result = await auth.authenticateUser(user.email, user.password);
+    let result = await auth.authenticateUser(user.username, user.password);
     res.json(result);
   } catch (e) {
     res.json({ error: e.message });
