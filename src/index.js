@@ -6,6 +6,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import storage from "./memory_storage.js";
 import auth from "./auth.js";
+import db from "./db.js";
 
 var app = express();
 const port = 3000;
@@ -37,6 +38,29 @@ app.post("/users", async (req, res) => {
     res.status(500).json({ error: e.message });
   }
   res.json({ id: id });
+});
+app.get("/groups", async (req, res) => {
+  let db = await connect();
+  let results;
+  try {
+    let cursor = await db.collection("Groups").find().sort({});
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+app.post("/groups", async (req, res) => {
+  let db = await connect();
+  let group = req.body;
+
+  console.log(group);
+  try {
+    await db.collection("Groups").insertOne(group);
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(group);
 });
 
 app.get("/posts", async (req, res) => {
