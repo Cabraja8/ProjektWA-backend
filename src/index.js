@@ -32,6 +32,7 @@ app.post("/users", async (req, res) => {
   let user = req.body;
 
   let id;
+
   try {
     id = await auth.registerUser(user);
   } catch (e) {
@@ -62,11 +63,14 @@ app.post("/groups", async (req, res) => {
   }
   res.json(group);
 });
+
 app.post("/creategroup", async (req, res) => {
   let db = await connect();
+  let user = req.body.username;
   let groupname = req.body.groupname;
   let companyname = req.body.companyname;
   let groupjoin = req.body.groupjoin;
+  console.log(user);
   let doc = {
     group: [
       {
@@ -74,12 +78,9 @@ app.post("/creategroup", async (req, res) => {
         groupjoin: groupjoin,
       },
     ],
-    users: [
-      {
-        username: "",
-        role: "",
-      },
-    ],
+    inbox: [],
+    admin: { username: user },
+    users: [],
   };
   console.log(groupname);
   try {

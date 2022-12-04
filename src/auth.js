@@ -15,6 +15,7 @@ export default {
       username: userData.username,
       password: await bcrypt.hash(userData.password, 8),
     };
+
     let existingUser = db
       .collection("users")
       .findOne({ username: userData.username });
