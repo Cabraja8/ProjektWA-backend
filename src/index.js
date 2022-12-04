@@ -62,6 +62,33 @@ app.post("/groups", async (req, res) => {
   }
   res.json(group);
 });
+app.post("/creategroup", async (req, res) => {
+  let db = await connect();
+  let groupname = req.body.groupname;
+  let companyname = req.body.companyname;
+  let groupjoin = req.body.groupjoin;
+  let doc = {
+    group: [
+      {
+        companyname: companyname,
+        groupjoin: groupjoin,
+      },
+    ],
+    users: [
+      {
+        username: "",
+        role: "",
+      },
+    ],
+  };
+  console.log(groupname);
+  try {
+    await db.collection(groupname).insertOne(doc);
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(groupname);
+});
 
 app.get("/posts", async (req, res) => {
   let db = await connect();
