@@ -42,29 +42,20 @@ app.post("/users", async (req, res) => {
 });
 app.get("/groups", async (req, res) => {
   let db = await connect();
+
   let results;
+
   try {
     let cursor = await db.collection("Groups").find().sort({});
     results = await cursor.toArray();
+    console.log(results);
   } catch (e) {
     console.log(e);
   }
   res.json(results);
 });
+
 app.post("/groups", async (req, res) => {
-  let db = await connect();
-  let group = req.body;
-
-  console.log(group);
-  try {
-    await db.collection("Groups").insertOne(group);
-  } catch (e) {
-    console.log(e);
-  }
-  res.json(group);
-});
-
-app.post("/creategroup", async (req, res) => {
   let db = await connect();
   let user = req.body.username;
   let groupname = req.body.groupname;
@@ -72,19 +63,16 @@ app.post("/creategroup", async (req, res) => {
   let groupjoin = req.body.groupjoin;
   console.log(user);
   let doc = {
-    group: [
-      {
-        companyname: companyname,
-        groupjoin: groupjoin,
-      },
-    ],
+    groupname: groupname,
+    companyname: companyname,
+    groupjoin: groupjoin,
+    username: user,
     inbox: [],
-    admin: { username: user },
     users: [],
   };
-  console.log(groupname);
+
   try {
-    await db.collection(groupname).insertOne(doc);
+    await db.collection("Groups").insertOne(doc);
   } catch (e) {
     console.log(e);
   }
