@@ -48,7 +48,38 @@ app.get("/groups", async (req, res) => {
   try {
     let cursor = await db.collection("Groups").find().sort({});
     results = await cursor.toArray();
-    console.log(results);
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+app.get("/group", async (req, res) => {
+  let db = await connect();
+  let user = req.query.username;
+  let results;
+
+  try {
+    let cursor = await db
+      .collection("Groups")
+      .find({ username: user })
+      .sort({});
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+app.get("/groupoption", async (req, res) => {
+  let db = await connect();
+  let option = req.query.pickoption;
+  let results;
+
+  try {
+    let cursor = await db
+      .collection("Groups")
+      .find({ groupname: option })
+      .sort({});
+    results = await cursor.toArray();
   } catch (e) {
     console.log(e);
   }
