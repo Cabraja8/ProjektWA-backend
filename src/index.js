@@ -42,11 +42,14 @@ app.post("/users", async (req, res) => {
 });
 app.get("/groups", async (req, res) => {
   let db = await connect();
-
+  let user = req.query.user.username;
   let results;
 
   try {
-    let cursor = await db.collection("Groups").find().sort({});
+    let cursor = await db
+      .collection("Groups")
+      .find({ username: { $ne: user } })
+      .sort({});
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
