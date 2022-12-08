@@ -58,7 +58,7 @@ app.get("/groups", async (req, res) => {
 });
 app.get("/group", async (req, res) => {
   let db = await connect();
-  let user = req.query.username;
+  let user = req.query.user.username;
   let results;
 
   try {
@@ -72,7 +72,7 @@ app.get("/group", async (req, res) => {
   }
   res.json(results);
 });
-app.get("/groupoption", async (req, res) => {
+app.get("/groupOption/:option", async (req, res) => {
   let db = await connect();
   let option = req.query.pickoption;
   let results;
