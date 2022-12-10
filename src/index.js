@@ -4,7 +4,6 @@ import express from "express";
 import connect from "./db.js";
 import cors from "cors";
 import jwt from "jsonwebtoken";
-import storage from "./memory_storage.js";
 import auth from "./auth.js";
 import db from "./db.js";
 
@@ -44,11 +43,11 @@ app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
   let results;
-
+  console.log(user);
   try {
     let cursor = await db
       .collection("Groups")
-      .find({ username: { $ne: user } })
+      .find({ "admin.username": { $ne: user } })
       .sort({});
     results = await cursor.toArray();
   } catch (e) {
@@ -64,7 +63,8 @@ app.get("/group", async (req, res) => {
   try {
     let cursor = await db
       .collection("Groups")
-      .find({ username: user })
+      .find({ "admin.username": user })
+
       .sort({});
     results = await cursor.toArray();
   } catch (e) {
@@ -91,7 +91,7 @@ app.get("/groupOption/:option", async (req, res) => {
 
 app.post("/groups", async (req, res) => {
   let db = await connect();
-  let user = req.body.username;
+  let user = req.body.admin;
   let groupname = req.body.groupname;
   let companyname = req.body.companyname;
   let groupjoin = req.body.groupjoin;
@@ -100,7 +100,9 @@ app.post("/groups", async (req, res) => {
     groupname: groupname,
     companyname: companyname,
     groupjoin: groupjoin,
-    username: user,
+    admin: [{ username: user }],
+    project: [],
+    tasks: [],
     inbox: [],
     users: [],
   };
@@ -111,15 +113,6 @@ app.post("/groups", async (req, res) => {
     console.log(e);
   }
   res.json(groupname);
-});
-
-app.get("/posts", async (req, res) => {
-  let db = await connect();
-
-  let cursor = await db.collection("ProjectGroups").find().sort({});
-  let results = await cursor.toArray();
-
-  res.json(results);
 });
 
 app.listen(port, () => {
