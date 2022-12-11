@@ -43,12 +43,16 @@ app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
   let results;
-  console.log(user);
+  let joinedUsers = req.query.joinedUsers;
+  console.log(joinedUsers, "currentuser brate");
   try {
-    let cursor = await db
-      .collection("Groups")
-      .find({ "admin.username": { $ne: user } })
-      .sort({});
+    let cursor = await db.collection("Groups").find({
+      $and: [
+        { "admin.username": { $ne: user } },
+        { "users.username": { $ne: joinedUsers } },
+      ],
+    });
+
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
@@ -61,11 +65,8 @@ app.get("/group", async (req, res) => {
   let results;
 
   try {
-    let cursor = await db
-      .collection("Groups")
-      .find({ "admin.username": user })
+    let cursor = await db.collection("Groups").find({ "admin.username": user });
 
-      .sort({});
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
@@ -78,17 +79,32 @@ app.get("/groupOption/:option", async (req, res) => {
   let results;
 
   try {
-    let cursor = await db
-      .collection("Groups")
-      .find({ groupname: option })
-      .sort({});
+    let cursor = await db.collection("Groups").find({ groupname: option });
+
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
   }
   res.json(results);
 });
+app.put("/joingroup", async (req, res) => {
+  let db = await connect();
+  let groupname = req.body.groupname;
+  let username = req.body.username;
+  let doc = {
+    username: username,
+    role: "Member",
+  };
 
+  try {
+    await db
+      .collection("Groups")
+      .updateOne({ groupname: groupname }, { $push: { users: doc } });
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(groupname);
+});
 app.post("/groups", async (req, res) => {
   let db = await connect();
   let user = req.body.admin;
