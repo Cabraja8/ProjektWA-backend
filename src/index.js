@@ -39,20 +39,38 @@ app.post("/users", async (req, res) => {
   }
   res.json({ id: id });
 });
+app.get("/getusers", async (req, res) => {
+  let db = await connect();
+
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({});
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+
 app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
   let results;
-  let joinedUsers = req.query.joinedUsers;
-  console.log(joinedUsers, "currentuser brate");
-  try {
-    let cursor = await db.collection("Groups").find({
-      $and: [
-        { "admin.username": { $ne: user } },
-        { "users.username": { $ne: joinedUsers } },
-      ],
-    });
+  let ress;
+  // try {
+  //   let cursor = await db.collection("users").find({ username: "Luka123" });
+  //   ress = await cursor.toArray();
+  //   console.log(ress, "brate");
+  // } catch (e) {
+  //   console.log(e);
+  // }
 
+  try {
+    let cursor = await db
+      .collection("Groups")
+      .find({ "admin.username": { $ne: user } }, { users: { $nin: ress } });
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
