@@ -41,11 +41,11 @@ app.post("/users", async (req, res) => {
 });
 app.get("/getusers", async (req, res) => {
   let db = await connect();
-
+  let user = req.query.user.username;
   let results;
-
+  console.log(user);
   try {
-    let cursor = await db.collection("Groups").find({});
+    let cursor = await db.collection("Groups").find({ "admin.username": user });
 
     results = await cursor.toArray();
   } catch (e) {
@@ -58,19 +58,10 @@ app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
   let results;
-  let ress;
-  // try {
-  //   let cursor = await db.collection("users").find({ username: "Luka123" });
-  //   ress = await cursor.toArray();
-  //   console.log(ress, "brate");
-  // } catch (e) {
-  //   console.log(e);
-  // }
-
   try {
     let cursor = await db
       .collection("Groups")
-      .find({ "admin.username": { $ne: user } }, { users: { $nin: ress } });
+      .find({ "admin.username": { $ne: user } });
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
