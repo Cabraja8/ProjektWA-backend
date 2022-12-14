@@ -39,14 +39,15 @@ app.post("/users", async (req, res) => {
   }
   res.json({ id: id });
 });
+
 app.get("/getusers", async (req, res) => {
   let db = await connect();
-  let user = req.query.user.username;
-
+  // let user = req.query.user.username;
+  let pickoption = req.query.pickoption;
   let results;
 
   try {
-    let cursor = await db.collection("Groups").find({ "admin.username": user });
+    let cursor = await db.collection("Groups").find({ groupname: pickoption });
 
     results = await cursor.toArray();
   } catch (e) {
