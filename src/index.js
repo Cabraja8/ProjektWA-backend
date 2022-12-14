@@ -42,8 +42,9 @@ app.post("/users", async (req, res) => {
 app.get("/getusers", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
+
   let results;
-  console.log(user);
+
   try {
     let cursor = await db.collection("Groups").find({ "admin.username": user });
 
