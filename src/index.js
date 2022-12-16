@@ -42,7 +42,6 @@ app.post("/users", async (req, res) => {
 
 app.get("/getusers", async (req, res) => {
   let db = await connect();
-  // let user = req.query.user.username;
   let pickoption = req.query.pickoption;
   let results;
 
@@ -54,6 +53,65 @@ app.get("/getusers", async (req, res) => {
     console.log(e);
   }
   res.json(results);
+});
+app.put("/EditUser", async (req, res) => {
+  let db = await connect();
+  let picktoption = req.body.params.pickoption;
+  let userData = req.body.params.userData;
+
+  console.log(picktoption);
+  console.log(userData);
+  let role = userData.Role;
+  let notes = userData.Notes;
+  let name = userData.Name;
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: picktoption, "users.username": name },
+        { $set: { "users.$.role": role, "users.$.notes": notes } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  res.json();
+});
+app.get("/GetInbox", async (req, res) => {
+  let db = await connect();
+  let option = req.query.pickoption;
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({ groupname: option }, {});
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+
+app.put("/AskToJoinGroup", async (req, res) => {
+  let db = await connect();
+  let user = req.body.params.user.username;
+  let groupname = req.body.params.groupname;
+  console.log(user, "user");
+  console.log(groupname, "groupname");
+
+  let doc = {
+    username: user,
+    picture: "",
+  };
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne({ groupname: groupname }, { $push: { inbox: doc } });
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(groupname);
 });
 
 app.get("/groups", async (req, res) => {
@@ -105,6 +163,8 @@ app.put("/joingroup", async (req, res) => {
   let doc = {
     username: username,
     role: "Member",
+    notes: "",
+    img: "",
   };
 
   try {
