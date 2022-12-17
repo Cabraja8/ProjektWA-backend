@@ -54,20 +54,38 @@ app.get("/getusers", async (req, res) => {
   }
   res.json(results);
 });
-app.put("/EditUser", async (req, res) => {
+app.put("/EditUserRole", async (req, res) => {
   let db = await connect();
   let picktoption = req.body.params.pickoption;
-  let userData = req.body.params.userData;
+  let role = req.body.params.roles;
 
-  let role = userData.Role;
-  let notes = userData.Notes;
-  let name = userData.Name;
+  let name = req.body.params.name;
+
   try {
     await db
       .collection("Groups")
       .updateOne(
         { groupname: picktoption, "users.username": name },
-        { $set: { "users.$.role": role, "users.$.notes": notes } }
+        { $set: { "users.$.role": role } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  res.json();
+});
+app.put("/EditUserNotes", async (req, res) => {
+  let db = await connect();
+  let picktoption = req.body.params.pickoption;
+  let notes = req.body.params.notes;
+
+  let name = req.body.params.name;
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: picktoption, "users.username": name },
+        { $set: { "users.$.notes": notes } }
       );
   } catch (e) {
     console.log(e);
@@ -159,14 +177,62 @@ app.get("/GetGroupInfo", async (req, res) => {
   }
   res.json(results);
 });
+app.put("/EditProjectInformation", async (req, res) => {
+  let db = await connect();
+  let option = req.body.params.option;
+
+  let info = req.body.params.info;
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: option },
+        { $set: { "project.information": info } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(option);
+});
+app.put("/EditProjectDescription", async (req, res) => {
+  let db = await connect();
+  let option = req.body.params.option;
+
+  let desc = req.body.params.description;
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: option },
+        { $set: { "project.description": desc } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(option);
+});
+app.get("/ProjectInfo", async (req, res) => {
+  let db = await connect();
+  let option = req.query.option;
+
+  let results;
+  try {
+    let cursor = await db.collection("Groups").find({ groupname: option });
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
 app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
   let results;
   try {
-    let cursor = await db
-      .collection("Groups")
-      .find({ "admin.username": { $ne: user } });
+    let cursor = await db.collection("Groups").find({ admin: { $ne: user } });
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
@@ -179,7 +245,7 @@ app.get("/group", async (req, res) => {
   let results;
 
   try {
-    let cursor = await db.collection("Groups").find({ "admin.username": user });
+    let cursor = await db.collection("Groups").find({ admin: user });
 
     results = await cursor.toArray();
   } catch (e) {
@@ -200,6 +266,39 @@ app.get("/groupOption/:option", async (req, res) => {
     console.log(e);
   }
   res.json(results);
+});
+app.put("/ChangeCompanyName", async (req, res) => {
+  let db = await connect();
+
+  let pick = req.body.params.pickoption;
+  let newCompanyName = req.body.params.company;
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: pick },
+        { $set: { companyname: newCompanyName } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(pick);
+});
+app.put("/ChangeGroupJoinType", async (req, res) => {
+  let db = await connect();
+
+  let pick = req.body.params.pickoption;
+  let groupjoin = req.body.params.groupjoin;
+  try {
+    await db
+      .collection("Groups")
+      .updateOne({ groupname: pick }, { $set: { groupjoin: groupjoin } });
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(pick);
 });
 app.put("/joingroup", async (req, res) => {
   let db = await connect();
@@ -232,8 +331,11 @@ app.post("/groups", async (req, res) => {
     groupname: groupname,
     companyname: companyname,
     groupjoin: groupjoin,
-    admin: [{ username: user }],
-    project: [],
+    admin: user,
+    project: {
+      description: "",
+      information: "",
+    },
     tasks: [],
     inbox: [],
     users: [],
