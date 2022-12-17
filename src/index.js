@@ -59,8 +59,6 @@ app.put("/EditUser", async (req, res) => {
   let picktoption = req.body.params.pickoption;
   let userData = req.body.params.userData;
 
-  console.log(picktoption);
-  console.log(userData);
   let role = userData.Role;
   let notes = userData.Notes;
   let name = userData.Name;
@@ -76,6 +74,41 @@ app.put("/EditUser", async (req, res) => {
   }
   res.json();
 });
+app.put("/DeclineInvite", async (req, res) => {
+  let db = await connect();
+  let username = req.body.params.username;
+  let pickoption = req.body.params.pickoption;
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: pickoption, "inbox.username": username },
+        { $pull: { inbox: { username: username } } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  res.json();
+});
+app.put("/KickUser", async (req, res) => {
+  let db = await connect();
+  let username = req.body.params.username;
+  let pickoption = req.body.params.pickoption;
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: pickoption, "users.username": username },
+        { $pull: { users: { username: username } } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  res.json();
+});
+
 app.get("/GetInbox", async (req, res) => {
   let db = await connect();
   let option = req.query.pickoption;
@@ -113,7 +146,19 @@ app.put("/AskToJoinGroup", async (req, res) => {
 
   res.json(groupname);
 });
+app.get("/GetGroupInfo", async (req, res) => {
+  let db = await connect();
+  let opt = req.query.pickoption;
 
+  let results;
+  try {
+    let cursor = await db.collection("Groups").find({ groupname: opt });
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
 app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
