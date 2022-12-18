@@ -39,7 +39,23 @@ app.post("/users", async (req, res) => {
   }
   res.json({ id: id });
 });
+app.get("/getAllUsers", async (req, res) => {
+  let db = await connect();
+  let user = req.query.user.username;
+  let currentusers = req.query.currentUsers;
+  let results;
 
+  try {
+    let cursor = await db.collection("users").find({
+      $and: [{ username: { $ne: user } }, { username: { $nin: currentusers } }],
+    });
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
 app.get("/getusers", async (req, res) => {
   let db = await connect();
   let pickoption = req.query.pickoption;
@@ -195,6 +211,39 @@ app.put("/EditProjectInformation", async (req, res) => {
 
   res.json(option);
 });
+app.put("/CreateTask", async (req, res) => {
+  let db = await connect();
+
+  let groupname = req.body.params.pickoption;
+  let TaskData = req.body.params.TaskData;
+
+  let doc;
+  if (TaskData.DeadlineData === "Deadline") {
+    doc = {
+      taskname: TaskData.taskname,
+      taskDesc: TaskData.taskDesc,
+      ForUser: TaskData.ForUser,
+      DeadLine: TaskData.DateInput,
+    };
+  } else {
+    doc = {
+      taskname: TaskData.taskname,
+      taskDesc: TaskData.taskDesc,
+      ForUser: TaskData.ForUser,
+      DeadLine: "No Deadline",
+    };
+  }
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne({ groupname: groupname }, { $push: { tasks: doc } });
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json();
+});
 app.put("/EditProjectDescription", async (req, res) => {
   let db = await connect();
   let option = req.body.params.option;
@@ -214,6 +263,19 @@ app.put("/EditProjectDescription", async (req, res) => {
 
   res.json(option);
 });
+app.get("/GetTaskList", async (req, res) => {
+  let db = await connect();
+  let option = req.query.pickoption;
+
+  let results;
+  try {
+    let cursor = await db.collection("Groups").find({ groupname: option });
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
 app.get("/ProjectInfo", async (req, res) => {
   let db = await connect();
   let option = req.query.option;
@@ -230,7 +292,9 @@ app.get("/ProjectInfo", async (req, res) => {
 app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
+  let groupname = req.query.groupname;
   let results;
+
   try {
     let cursor = await db.collection("Groups").find({ admin: { $ne: user } });
     results = await cursor.toArray();
