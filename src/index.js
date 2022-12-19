@@ -180,6 +180,24 @@ app.put("/AskToJoinGroup", async (req, res) => {
 
   res.json(groupname);
 });
+
+app.put("/DeleteTask", async (req, res) => {
+  let db = await connect();
+  let pickoption = req.body.params.pickoption;
+  let taskname = req.body.params.taskname;
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: pickoption },
+        { $pull: { tasks: { taskname: taskname } } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  res.json();
+});
+
 app.get("/GetGroupInfo", async (req, res) => {
   let db = await connect();
   let opt = req.query.pickoption;
