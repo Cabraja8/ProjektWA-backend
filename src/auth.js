@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 let authentication = async () => {
   let db = await connect();
-  await db.collection("users").createIndex({ username: 50 }, { unique: true });
+  await db.collection("users").createIndex({ username: 1 }, { unique: true });
 };
 authentication();
 export default {
@@ -35,6 +35,7 @@ export default {
     }
     if (existingUser) {
       console.log("korisnik već postoji");
+      res.json("korisnik vec postoji");
     }
   },
 

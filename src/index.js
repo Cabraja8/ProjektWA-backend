@@ -13,6 +13,20 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
+let CheckInGroup = async () => {
+  let db = await connect();
+  await db.collection("Groups").createIndex({ groupname: 1 }, { unique: true });
+};
+
+// let CheckTaskName = async () => {
+//   let db = await connect();
+//   await db.collection("Groups").createIndex({ tasks: 1 }, { unique: true });
+// };
+
+CheckInGroup();
+
+// CheckTaskName();
+
 app.get("/tajna", [auth.verify], (req, res) => {
   res.json({ message: "Ovo je tajna " + req.jwt.username });
 });
@@ -43,11 +57,16 @@ app.get("/getAllUsers", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
   let currentusers = req.query.currentUsers;
+  let inbox = req.query.inbox;
   let results;
 
   try {
     let cursor = await db.collection("users").find({
-      $and: [{ username: { $ne: user } }, { username: { $nin: currentusers } }],
+      $and: [
+        { username: { $ne: user } },
+        { username: { $nin: inbox } },
+        { username: { $nin: currentusers } },
+      ],
     });
 
     results = await cursor.toArray();
@@ -349,6 +368,7 @@ app.get("/groupOption/:option", async (req, res) => {
   }
   res.json(results);
 });
+
 app.put("/ChangeCompanyName", async (req, res) => {
   let db = await connect();
 
