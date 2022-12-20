@@ -18,14 +18,16 @@ let CheckInGroup = async () => {
   await db.collection("Groups").createIndex({ groupname: 1 }, { unique: true });
 };
 
-// let CheckTaskName = async () => {
-//   let db = await connect();
-//   await db.collection("Groups").createIndex({ tasks: 1 }, { unique: true });
-// };
+let CheckTaskName = async () => {
+  let db = await connect();
+  await db
+    .collection("Groups")
+    .createIndex({ "tasks.taskname": 1 }, { unique: true });
+};
 
 CheckInGroup();
 
-// CheckTaskName();
+CheckTaskName();
 
 app.get("/tajna", [auth.verify], (req, res) => {
   res.json({ message: "Ovo je tajna " + req.jwt.username });
@@ -53,25 +55,47 @@ app.post("/users", async (req, res) => {
   }
   res.json({ id: id });
 });
-app.get("/getAllUsers", async (req, res) => {
+app.get("/getUserList", async (req, res) => {
   let db = await connect();
-  let user = req.query.user.username;
-  let currentusers = req.query.currentUsers;
-  let inbox = req.query.inbox;
+  let pickoption = req.query.pickoption;
   let results;
 
   try {
-    let cursor = await db.collection("users").find({
-      $and: [
-        { username: { $ne: user } },
-        { username: { $nin: inbox } },
-        { username: { $nin: currentusers } },
-      ],
-    });
+    let cursor = await db.collection("Groups").find({ groupname: pickoption });
 
     results = await cursor.toArray();
   } catch (e) {
     console.log(e);
+  }
+  res.json(results);
+});
+app.get("/getAllUsers", async (req, res) => {
+  let db = await connect();
+  let user = req.query.user.username;
+  let notingroup = [];
+  notingroup = req.query.notingroup;
+  let results;
+
+  if (typeof notingroup === "undefined") {
+    try {
+      let cursor = await db.collection("users").find({
+        username: { $ne: user },
+      });
+
+      results = await cursor.toArray();
+    } catch (e) {
+      console.log(e);
+    }
+  } else {
+    try {
+      let cursor = await db.collection("users").find({
+        $and: [{ username: { $ne: user } }, { username: { $nin: notingroup } }],
+      });
+
+      results = await cursor.toArray();
+    } catch (e) {
+      console.log(e);
+    }
   }
   res.json(results);
 });
@@ -367,6 +391,19 @@ app.get("/groupOption/:option", async (req, res) => {
     console.log(e);
   }
   res.json(results);
+});
+
+app.delete("/DeleteGroup", async (req, res) => {
+  let db = await connect();
+  let group = req.query.group;
+
+  try {
+    await db.collection("Groups").deleteOne({ groupname: group });
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json();
 });
 
 app.put("/ChangeCompanyName", async (req, res) => {
