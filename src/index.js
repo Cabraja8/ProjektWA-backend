@@ -27,6 +27,52 @@ app.post("/auth", async (req, res) => {
   }
 });
 
+app.get("/GetJoinedGroups", async (req, res) => {
+  let db = await connect();
+  let user = req.query.user.username;
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({ "users.username": user });
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+app.get("/GetYourGroup", async (req, res) => {
+  let db = await connect();
+  let user = req.query.user.username;
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({ admin: user });
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+app.put("/LeaveGroup", async (req, res) => {
+  let db = await connect();
+  let user = req.body.params.user.username;
+  let groupname = req.body.params.groupname;
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: groupname },
+        { $pull: { users: { username: user } } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+  res.json();
+});
+
 app.post("/users", async (req, res) => {
   let user = req.body;
 
@@ -195,7 +241,6 @@ app.put("/AskToJoinGroup", async (req, res) => {
 
   let doc = {
     username: user,
-    picture: "",
   };
 
   try {
@@ -445,7 +490,6 @@ app.put("/joingroup", async (req, res) => {
     username: username,
     role: "Member",
     notes: "",
-    img: "",
   };
 
   try {

@@ -14,7 +14,7 @@ export default {
     let doc = {
       username: userData.username,
       password: await bcrypt.hash(userData.password, 8),
-      img: userData.img,
+
       dm: userData.dm,
     };
 
