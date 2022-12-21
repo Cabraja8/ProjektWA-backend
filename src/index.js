@@ -13,22 +13,6 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-let CheckInGroup = async () => {
-  let db = await connect();
-  await db.collection("Groups").createIndex({ groupname: 1 }, { unique: true });
-};
-
-let CheckTaskName = async () => {
-  let db = await connect();
-  await db
-    .collection("Groups")
-    .createIndex({ "tasks.taskname": 1 }, { unique: true });
-};
-
-CheckInGroup();
-
-CheckTaskName();
-
 app.get("/tajna", [auth.verify], (req, res) => {
   res.json({ message: "Ovo je tajna " + req.jwt.username });
 });
@@ -132,6 +116,7 @@ app.put("/EditUserRole", async (req, res) => {
   }
   res.json();
 });
+
 app.put("/EditUserNotes", async (req, res) => {
   let db = await connect();
   let picktoption = req.body.params.pickoption;
@@ -350,10 +335,23 @@ app.get("/ProjectInfo", async (req, res) => {
   }
   res.json(results);
 });
+app.get("/GetAllGroups", async (req, res) => {
+  let db = await connect();
+  let results;
+  let user = req.query.user.username;
+
+  try {
+    let cursor = await db.collection("Groups").find({ admin: { $eq: user } });
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
 app.get("/groups", async (req, res) => {
   let db = await connect();
   let user = req.query.user.username;
-  let groupname = req.query.groupname;
+
   let results;
 
   try {
