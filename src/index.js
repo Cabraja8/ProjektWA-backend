@@ -70,7 +70,7 @@ app.put("/LeaveGroup", async (req, res) => {
   } catch (e) {
     console.log(e);
   }
-  res.json();
+  res.json(groupname);
 });
 
 app.post("/users", async (req, res) => {
@@ -230,6 +230,77 @@ app.get("/GetInbox", async (req, res) => {
     console.log(e);
   }
   res.json(results);
+});
+app.put("/DontJoin", async (req, res) => {
+  let db = await connect();
+  let user = req.body.params.user.username;
+  let groupname = req.body.params.groupname;
+
+  try {
+    await db
+      .collection("users")
+      .updateOne(
+        { username: user },
+        { $pull: { dm: { groupname: groupname } } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(groupname);
+});
+app.get("/getInviteList", async (req, res) => {
+  let db = await connect();
+  let user = req.query.user.username;
+
+  let results;
+  try {
+    let cursor = await db.collection("users").find({ username: user });
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+app.put("/joingroupinvite", async (req, res) => {
+  let db = await connect();
+  let groupname = req.body.groupname;
+  let username = req.body.username;
+  let doc = {
+    username: username,
+    role: "Member",
+    notes: "",
+  };
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne({ groupname: groupname }, { $push: { users: doc } });
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(groupname);
+});
+app.put("/InviteUser", async (req, res) => {
+  let db = await connect();
+  let user = req.body.params.username;
+  let pick = req.body.params.pickoption;
+  let admin = req.body.params.admin.username;
+
+  let doc = {
+    groupname: pick,
+    admin: admin,
+  };
+
+  try {
+    await db
+      .collection("users")
+      .updateOne({ username: user }, { $push: { dm: doc } });
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(pick);
 });
 
 app.put("/AskToJoinGroup", async (req, res) => {
