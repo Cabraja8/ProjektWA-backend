@@ -264,8 +264,9 @@ app.get("/getInviteList", async (req, res) => {
 });
 app.put("/joingroupinvite", async (req, res) => {
   let db = await connect();
-  let groupname = req.body.groupname;
-  let username = req.body.username;
+  let groupname = req.body.params.groupname;
+  let username = req.body.params.user.username;
+
   let doc = {
     username: username,
     role: "Member",
@@ -355,6 +356,54 @@ app.get("/GetGroupInfo", async (req, res) => {
   }
   res.json(results);
 });
+app.get("/GetGroupPick", async (req, res) => {
+  let db = await connect();
+
+  let user = req.query.user.username;
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({ "users.username": user });
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+app.get("/GetTaskUserList", async (req, res) => {
+  let db = await connect();
+  let groupname = req.query.groupname;
+  let user = req.query.user.username;
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({
+      $and: [{ groupname: groupname }, { "tasks.ForUser": user }],
+    });
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
+
+app.get("/GroupName/:option", async (req, res) => {
+  let db = await connect();
+  let option = req.query.option;
+
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({ groupname: option });
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
+});
 app.put("/EditProjectInformation", async (req, res) => {
   let db = await connect();
   let option = req.body.params.option;
@@ -372,6 +421,21 @@ app.put("/EditProjectInformation", async (req, res) => {
   }
 
   res.json(option);
+});
+app.get("/GetGroupsForMod", async (req, res) => {
+  let db = await connect();
+  let option = req.query.pickoption;
+
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({ groupname: option });
+
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(results);
 });
 app.put("/CreateTask", async (req, res) => {
   let db = await connect();
@@ -424,6 +488,40 @@ app.put("/EditProjectDescription", async (req, res) => {
   }
 
   res.json(option);
+});
+app.put("/ClearCompletedTask", async (req, res) => {
+  let db = await connect();
+  let results;
+
+  let taskname = req.body.params.taskname;
+  let option = req.body.params.pickoption;
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne(
+        { groupname: option },
+        { $pull: { completedTasks: { taskname: taskname } } }
+      );
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(results);
+});
+app.get("/GetCompletedTasks", async (req, res) => {
+  let db = await connect();
+  let pickoption = req.query.pickoption;
+  let results;
+
+  try {
+    let cursor = await db.collection("Groups").find({ groupname: pickoption });
+    results = await cursor.toArray();
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.json(results);
 });
 app.get("/GetTaskList", async (req, res) => {
   let db = await connect();
@@ -572,6 +670,26 @@ app.put("/joingroup", async (req, res) => {
   }
   res.json(groupname);
 });
+app.put("/CompleteTask", async (req, res) => {
+  let db = await connect();
+  let groupname = req.body.params.pickoption;
+  let taskData = req.body.params.taskData;
+
+  let doc = {
+    taskname: taskData.taskname,
+    deadline: taskData.deadline,
+    forUser: taskData.forUser,
+  };
+
+  try {
+    await db
+      .collection("Groups")
+      .updateOne({ groupname: groupname }, { $push: { completedTasks: doc } });
+  } catch (e) {
+    console.log(e);
+  }
+  res.json(groupname);
+});
 app.post("/groups", async (req, res) => {
   let db = await connect();
   let user = req.body.admin;
@@ -588,6 +706,7 @@ app.post("/groups", async (req, res) => {
       description: "",
       information: "",
     },
+    completedTasks: [],
     tasks: [],
     inbox: [],
     users: [],
