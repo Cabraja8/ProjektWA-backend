@@ -105,26 +105,59 @@ app.get("/getAllUsers", async (req, res) => {
   let notingroup = [];
   notingroup = req.query.notingroup;
   let results;
+  let search = req.query.search;
+  console.log(search);
 
   if (typeof notingroup === "undefined") {
-    try {
-      let cursor = await db.collection("users").find({
-        username: { $ne: user },
-      });
+    if (search !== "") {
+      try {
+        let cursor = await db.collection("users").find({
+          $and: [{ username: { $ne: user } }, { username: new RegExp(search) }],
+        });
 
-      results = await cursor.toArray();
-    } catch (e) {
-      console.log(e);
+        results = await cursor.toArray();
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      try {
+        let cursor = await db.collection("users").find({
+          username: { $ne: user },
+        });
+
+        results = await cursor.toArray();
+      } catch (e) {
+        console.log(e);
+      }
     }
   } else {
-    try {
-      let cursor = await db.collection("users").find({
-        $and: [{ username: { $ne: user } }, { username: { $nin: notingroup } }],
-      });
+    if (search !== "") {
+      try {
+        let cursor = await db.collection("users").find({
+          $and: [
+            { username: { $ne: user } },
+            { username: { $nin: notingroup } },
+            { username: new RegExp(search) },
+          ],
+        });
 
-      results = await cursor.toArray();
-    } catch (e) {
-      console.log(e);
+        results = await cursor.toArray();
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      try {
+        let cursor = await db.collection("users").find({
+          $and: [
+            { username: { $ne: user } },
+            { username: { $nin: notingroup } },
+          ],
+        });
+
+        results = await cursor.toArray();
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
   res.json(results);
@@ -389,7 +422,7 @@ app.get("/GetTaskUserList", async (req, res) => {
   res.json(results);
 });
 
-app.get("/GroupName/:option", async (req, res) => {
+app.get("/GroupName", async (req, res) => {
   let db = await connect();
   let option = req.query.option;
 
@@ -564,15 +597,26 @@ app.get("/GetAllGroups", async (req, res) => {
 });
 app.get("/groups", async (req, res) => {
   let db = await connect();
-  let user = req.query.user.username;
-
+  let user = req.query.user;
+  let searchterm = req.query.search;
   let results;
 
-  try {
-    let cursor = await db.collection("Groups").find({ admin: { $ne: user } });
-    results = await cursor.toArray();
-  } catch (e) {
-    console.log(e);
+  if (searchterm === "") {
+    try {
+      let cursor = await db.collection("Groups").find({ admin: { $ne: user } });
+      results = await cursor.toArray();
+    } catch (e) {
+      console.log(e);
+    }
+  } else {
+    try {
+      let cursor = await db.collection("Groups").find({
+        $and: [{ admin: { $ne: user } }, { groupname: new RegExp(searchterm) }],
+      });
+      results = await cursor.toArray();
+    } catch (e) {
+      console.log(e);
+    }
   }
   res.json(results);
 });
@@ -590,7 +634,7 @@ app.get("/group", async (req, res) => {
   }
   res.json(results);
 });
-app.get("/groupOption/:option", async (req, res) => {
+app.get("/groupOption", async (req, res) => {
   let db = await connect();
   let option = req.query.pickoption;
   let results;
