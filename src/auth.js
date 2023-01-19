@@ -53,6 +53,7 @@ export default {
         algorithm: "HS512",
         expiresIn: "1 week",
       });
+      console.log(token, "token");
       return {
         token,
         username: user.username,
