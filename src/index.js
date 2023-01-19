@@ -31,7 +31,7 @@ app.get("/tajna", [auth.verify], (req, res) => {
 });
 app.post("/auth", async (req, res) => {
   let user = req.body;
-
+  console.log(user);
   try {
     let result = await auth.authenticateUser(user.username, user.password);
     res.json(result);
