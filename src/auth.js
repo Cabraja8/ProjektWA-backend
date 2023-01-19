@@ -42,7 +42,7 @@ export default {
   async authenticateUser(username, password) {
     let db = await connect();
     let user = await db.collection("users").findOne({ username: username });
-    console.log(username);
+
     if (
       user &&
       user.password &&
