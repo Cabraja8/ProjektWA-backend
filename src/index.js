@@ -13,25 +13,25 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-// app.use(function (req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header(
-//     "Access-Control-Allow-Methods",
-//     "GET,HEAD,OPTIONS,POST,PUT,DELETE"
-//   );
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content Type, Accept, Authorization"
-//   );
-//   next();
-// });
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,HEAD,OPTIONS,POST,PUT,DELETE"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content Type, Accept, Authorization"
+  );
+  next();
+});
 
 app.get("/tajna", [auth.verify], (req, res) => {
   res.json({ message: "Ovo je tajna " + req.jwt.username });
 });
 app.post("/auth", async (req, res) => {
   let user = req.body;
-
+  console.log(user);
   try {
     let result = await auth.authenticateUser(user.username, user.password);
     res.json(result);
