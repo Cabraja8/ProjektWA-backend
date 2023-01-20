@@ -27,11 +27,12 @@ app.use(function (req, res, next) {
 });
 
 app.get("/tajna", [auth.verify], (req, res) => {
+  console.log(req.jwt.username, "jwt username");
   res.json({ message: "Ovo je tajna " + req.jwt.username });
 });
 app.post("/auth", async (req, res) => {
   let user = req.body;
-  console.log(user);
+  console.log(user, "user");
   try {
     let result = await auth.authenticateUser(user.username, user.password);
     res.json(result);
